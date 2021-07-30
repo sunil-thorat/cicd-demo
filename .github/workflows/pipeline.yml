@@ -4,7 +4,7 @@ on:
   push:
     branches: 
       - "**"
-
+ 
 jobs:
   get-version:
     name: "Get Version"
@@ -59,14 +59,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-          cache: 'npm'
       - name: Run ES lint
         run: |
           echo "npm run eslint"
-          npm version
 
   npm-build:
     name: npm-build
@@ -75,10 +70,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-          cache: 'npm'
       - name: Download version.txt
         uses: actions/download-artifact@v2
         with: 
@@ -87,7 +78,6 @@ jobs:
         run: |
           source version.txt
           echo NODE_ENV=production npm run build
-          npm version
 
   npm-unittest:
     name: npm-unittest
@@ -96,14 +86,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-          cache: 'npm'
       - name: Run tests
         run: |          
           echo CI=true npm run test
-          npm version
  
   helm-package-publish:
     name: helm-package-publish
@@ -137,11 +122,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: version
-      - name: Download npm package
-        uses: actions/download-artifact@v2
-        with:
-          name: npm-package
-          path: app/output
+      # - name: Download npm package
+      #   uses: actions/download-artifact@v2
+      #   with:
+      #     name: npm-package
+      #     path: app/output
       - name: Build and publish docker image
         run: |
           source version.txt
