@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: 
+      - "**"
+  pull_request: 
+    branches: [ main ]
+
+jobs:
+  get-version:
+    name: "Get Version"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get next semantic version
+        uses: PaulHatch/semantic-version@v4.0.2
+        id: semantic-version
+        with:
+          tag_prefix: ""
+          major_pattern: "BREAKING CHANGE:"
+          minor_pattern: "feat:"
+          format: "${major}.${minor}.${patch}-${increment}.${GITHUB_SHA:0:7}"
+          short_tags: false
+      - name: Get pre-release version
+        run: |
+          VERSION=${{ steps.semantic-version.outputs.version }}
+          echo "VERSION=$VERSION" >> version.txt
+          echo $VERSION
+      - name: Upload version.txt
+        uses: actions/upload-artifact@v2
+        with:
+          name: version
+          path: version.txt
+          retention-days: 5
+
+      
+    
