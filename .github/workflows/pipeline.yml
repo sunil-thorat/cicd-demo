@@ -28,9 +28,9 @@ jobs:
       - name: Get pre-release version
         run: |
           VERSION=${{ steps.semantic-version.outputs.version }}
-          SEMANTIC_VERSION=${{ steps.semantic-version.outputs.version_tag }}
+          RELEASE_VERSION=${{ steps.semantic-version.outputs.version_tag }}
           echo "VERSION=$VERSION" > version.txt
-          echo "VERSEMANTIC_VERSION=$SEMANTIC_VERSION" >> version.txt
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> version.txt
           echo $VERSION
       - name: Upload version.txt
         uses: actions/upload-artifact@v2
