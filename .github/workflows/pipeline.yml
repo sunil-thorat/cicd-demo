@@ -153,7 +153,7 @@ jobs:
   deploy-qa:
     name: Deploy QA
     needs: [helm-package-publish, docker-package-publish]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: 
       name: CD4-QA
       url: 'https://mix-qa.cd4.crt.nuance.com/v3/'
