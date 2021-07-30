@@ -22,7 +22,7 @@ jobs:
         with:
           tag_prefix: ""
           major_pattern: "BREAKING CHANGE:"
-          minor_pattern: "feat:"
+          minor_pattern: "(feat:/Feat:/feature)"
           format: "${major}.${minor}.${patch}-${increment}.${GITHUB_SHA:0:7}"
           short_tags: false
       - name: Get pre-release version
