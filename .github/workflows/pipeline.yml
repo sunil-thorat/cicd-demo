@@ -46,10 +46,11 @@ jobs:
       - name: Install helm
         uses: azure/setup-helm@v1
         with:
-          version: 'v3.6.3'
+          version: 'v3.6.0'
       - name: Lint and template
         run: |
-          echo "Helm Lint" 
+          echo "Helm Lint"
+          helm version
   
   es-lint:
     name: es-lint
@@ -65,6 +66,7 @@ jobs:
       - name: Run ES lint
         run: |
           echo "npm run eslint"
+          npm version
 
   npm-build:
     name: npm-build
@@ -85,6 +87,7 @@ jobs:
         run: |
           source version.txt
           echo NODE_ENV=production npm run build
+          npm version
 
   npm-unittest:
     name: npm-unittest
@@ -100,6 +103,7 @@ jobs:
       - name: Run tests
         run: |          
           echo CI=true npm run test
+          npm version
  
   helm-package-publish:
     name: helm-package-publish
@@ -111,7 +115,7 @@ jobs:
       - name: Setup helm
         uses: azure/setup-helm@v1
         with:
-          version: 'v3.6.3'
+          version: 'v3.6.0'
       - name: Download version.txt
         uses: actions/download-artifact@v2
         with:
@@ -120,6 +124,7 @@ jobs:
         run: |
           source version.txt
           echo Package -> Publish
+          helm version
 
   docker-package-publish:
     name: docker-package-publish
@@ -141,6 +146,7 @@ jobs:
         run: |
           source version.txt
           echo docker build -> docker push
+          docker version
 
   deploy-dev:
     name: Deploy DEV
