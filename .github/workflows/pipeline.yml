@@ -163,6 +163,7 @@ jobs:
   deploy-dev:
     name: Deploy DEV
     needs: [helm-package-publish, docker-package-publish]
+    if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: 
       name: CD4-DEV
@@ -180,6 +181,7 @@ jobs:
   deploy-qa:
     name: Deploy QA
     needs: [helm-package-publish, docker-package-publish]
+    if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: 
       name: CD4-QA
@@ -238,6 +240,7 @@ jobs:
   retag-and-publish-artifacts:
     name: Retag and Publish artifacts
     needs: create-release
+    if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Download version.txt
@@ -266,6 +269,7 @@ jobs:
   trigger-prod-pipeline:
     name: Trigger Prod Pipeline
     needs: retag-and-publish-artifacts
+    if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: PROD
@@ -281,6 +285,7 @@ jobs:
   veracode-dynamic-analysis:
     name: Veracode Dynamic Analysis
     needs: trigger-prod-pipeline
+    if: success() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Scan
