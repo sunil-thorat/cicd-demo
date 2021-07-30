@@ -4,8 +4,6 @@ on:
   push:
     branches: 
       - "**"
-  pull_request: 
-    branches: [ main ]
 
 jobs:
   get-version:
@@ -29,7 +27,6 @@ jobs:
           increment=$(git rev-list  $(git rev-list --tags --no-walk --max-count=1)..HEAD --count)
           VERSION=${{ steps.semantic-version.outputs.new_version }}-${increment}.${GITHUB_SHA:0:7}
           echo "VERSION=$VERSION" > version.txt
-          echo RELEASE_VERSION=${{ steps.semantic-version.outputs.new_version }} >> version.txt
           echo PREVIOUS_RELEASE_TAG=${{ steps.semantic-version.outputs.previous_tag }} >> version.txt
           echo VERSION: $VERSION
       - name: Upload version.txt
@@ -39,9 +36,150 @@ jobs:
           path: version.txt
           retention-days: 5
 
+  helm-lint:
+    name: helm-lint
+    needs: get-version
+    runs-on: self-hosted
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install helm
+        uses: azure/setup-helm@v1
+        with:
+          version: 'v3.6.3'
+      - name: Lint and template
+        run: |
+          echo " Helm Lint" 
+  
+  es-lint:
+    name: es-lint
+    needs: get-version
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+      - name: Run ES lint
+        run: |
+          echo "npm run eslint"
+
+  npm-build:
+    name: npm-build
+    needs: get-version
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with: 
+          name: version
+      - name: Build npm package
+        run: |
+          source version.txt
+          echo NODE_ENV=production npm run build
+
+  npm-unittest:
+    name: npm-unittest
+    needs: get-version
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+      - name: Run tests
+        run: |          
+          echo CI=true npm run test
+ 
+  helm-package-publish:
+    name: helm-package-publish
+    needs: helm-lint
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup helm
+        uses: azure/setup-helm@v1
+        with:
+          version: 'v3.6.3'
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+      - name: Package and publish helm chart
+        run: |
+          source version.txt
+          echo Package -> Publish
+
+  docker-package-publish:
+    name: docker-package-publish
+    needs: npm-build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+      - name: Download npm package
+        uses: actions/download-artifact@v2
+        with:
+          name: npm-package
+          path: app/output
+      - name: Build and publish docker image
+        run: |
+          source version.txt
+          echo docker build -> docker push
+
+  deploy-dev:
+    name: Deploy DEV
+    needs: [helm-package-publish, docker-package-publish]
+    runs-on: self-hosted
+    environment: 
+      name: CD4-DEV
+      url: 'https://mix-dev.cd4.crt.nuance.com/v3/'
+    steps:
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+      - name: Trigger harness workflow
+        run: |
+          cat version.txt
+          echo curl harness url
+
+  deploy-qa:
+    name: Deploy QA
+    needs: [helm-package-publish, docker-package-publish]
+    runs-on: self-hosted
+    environment: 
+      name: CD4-QA
+      url: 'https://mix-qa.cd4.crt.nuance.com/v3/'
+    steps:
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with:
+          name: version
+      - name: Trigger harness workflow
+        run: |
+          cat version.txt
+          echo curl harness url
+
   create-release:
     name: Create release
-    needs: get-version
+    needs: deploy
     runs-on: ubuntu-latest
     if: success() && github.ref == 'refs/heads/main'
     environment: 
@@ -79,4 +217,49 @@ jobs:
           name: version
           path: version.txt
           retention-days: 5
+
+  retag-and-publish-artifacts:
+    name: Retag and Publish artifacts
+    needs: create-release
+    runs-on: self-hosted
+    steps:
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with: 
+          name: version
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Docker image 
+        run: |
+          source version.txt
+          cat version.txt
+          echo "Pull -> Retag -> Push "
+          docker version
+      - name: Setup helm
+        uses: azure/setup-helm@v1
+        with:
+          version: 'v3.6.3'
+      - name: Helm chart
+        run: |
+          source version.txt
+          cat version.txt
+          echo "Download -> extract -> Package > Push"
+          helm version
+
+  deploy-prod-pipeline:
+    name: Deploy prod Pipeline
+    needs: retag-and-publish-artifacts
+    runs-on: self-hosted
+    environment:
+      name: PROD
+    steps:
+      - name: Download version.txt
+        uses: actions/download-artifact@v2
+        with: 
+          name: version
+      - name: Trigger harness pipeline
+        run: |
+          echo "Trigger harness pipeline: STAGE > PROD"
+
+
   
