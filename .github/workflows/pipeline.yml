@@ -60,8 +60,7 @@ jobs:
           create_annotated_tag: true
           tag_prefix: ""
           release_branches: 'main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Generate changelogs
         id: release_changelog
         uses: mikepenz/release-changelog-builder-action@v2
