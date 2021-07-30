@@ -29,6 +29,8 @@ jobs:
           increment=$(git rev-list  $(git rev-list --tags --no-walk --max-count=1)..HEAD --count)
           VERSION=${{ steps.semantic-version.outputs.new_version }}-${increment}.${GITHUB_SHA:0:7}
           echo "VERSION=$VERSION" > version.txt
+          echo SEMANTIC_TAG=${{ steps.semantic-version.outputs.new_version }} >> version.txt
+          echo LAST_RELEASE_TAG=${{ steps.semantic-version.outputs.previous_tag }}
           echo $VERSION
       - name: Upload version.txt
         uses: actions/upload-artifact@v2
