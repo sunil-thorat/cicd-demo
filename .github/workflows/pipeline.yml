@@ -41,7 +41,10 @@ jobs:
     name: Publish Release
     needs: get-version
     runs-on: ubuntu-latest
-    environment: Release
+    if: ${{ github.ref == 'main' }}
+    environment: 
+      name: Release
+      url: ${{ steps.create_release.outputs.html_url }}
     steps:
       - uses: actions/checkout@v2
       - name: Bump version and push tag
@@ -52,6 +55,7 @@ jobs:
           dry_run: true
       - name: Create a GitHub release
         uses: actions/create-release@v1
+        id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
