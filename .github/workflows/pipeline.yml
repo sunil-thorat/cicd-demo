@@ -39,7 +39,7 @@ jobs:
   helm-lint:
     name: helm-lint
     needs: get-version
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -55,7 +55,7 @@ jobs:
   es-lint:
     name: es-lint
     needs: get-version
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
   npm-build:
     name: npm-build
     needs: get-version
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -92,7 +92,7 @@ jobs:
   npm-unittest:
     name: npm-unittest
     needs: get-version
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -108,7 +108,7 @@ jobs:
   helm-package-publish:
     name: helm-package-publish
     needs: helm-lint
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -129,7 +129,7 @@ jobs:
   docker-package-publish:
     name: docker-package-publish
     needs: npm-build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -151,7 +151,7 @@ jobs:
   deploy-dev:
     name: Deploy DEV
     needs: [helm-package-publish, docker-package-publish]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: 
       name: CD4-DEV
       url: 'https://mix-dev.cd4.crt.nuance.com/v3/'
@@ -226,7 +226,7 @@ jobs:
   retag-and-publish-artifacts:
     name: Retag and Publish artifacts
     needs: create-release
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Download version.txt
         uses: actions/download-artifact@v2
@@ -254,7 +254,7 @@ jobs:
   deploy-Prod-pipeline:
     name: Deploy prod Pipeline
     needs: retag-and-publish-artifacts
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment:
       name: PROD
     steps:
