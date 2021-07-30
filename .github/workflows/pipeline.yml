@@ -10,6 +10,7 @@ on:
 jobs:
   get-version:
     name: "Get Version"
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,5 +38,36 @@ jobs:
           path: version.txt
           retention-days: 5
 
+  release:
+    name: Create Release tag
+    needs: get-version
+    runs-on: ubuntu-latest
+    if: github.ref == 'ref/heads/main'
+    environment: 
+      name: Release
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v5.6
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          create_annotated_tag: true
+          tag_prefix: ""
+          dry_run: true
+      - name: Show release data
+        run: |
+          echo ${{ steps.tag_version.outputs.new_tag }}
+          echo ${{ steps.tag_version.outputs.changelog }}
+      # - name: Create a GitHub release
+      #   uses: actions/create-release@v1
+      #   id: create_release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ steps.tag_version.outputs.new_tag }}
+      #     release_name: Release ${{ steps.tag_version.outputs.new_tag }}
+      #     body: ${{ steps.tag_version.outputs.changelog }}
       
     
