@@ -90,6 +90,15 @@ jobs:
         run: |          
           echo CI=true npm run test
  
+  sonar-scan:
+    name: Sonar Scan
+    needs: [get-version, npm-unittest]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger sonar scan
+        run: |
+          echo "Trigger sonar scan"
+
   helm-package-publish:
     name: helm-package-publish
     needs: helm-lint
@@ -132,6 +141,24 @@ jobs:
           source version.txt
           echo docker build -> docker push
           docker version
+
+  xray-scan:
+    name: Xray Scan
+    needs: docker-package-publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Scan
+        run: |
+          echo "Trigger Xray Scan"
+
+  veracode-static-scan:
+    name: Veracode Static Scan
+    needs: get-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Scan
+        run: |
+          echo "Trigger Veracode Scan"
 
   deploy-dev:
     name: Deploy DEV
@@ -236,8 +263,8 @@ jobs:
           echo "Download -> extract -> Package > Push"
           helm version
 
-  deploy-Prod-pipeline:
-    name: Deploy prod Pipeline
+  trigger-prod-pipeline:
+    name: Trigger Prod Pipeline
     needs: retag-and-publish-artifacts
     runs-on: ubuntu-latest
     environment:
@@ -251,5 +278,12 @@ jobs:
         run: |
           echo "Trigger harness pipeline: STAGE > PROD"
 
-
+  veracode-dynamic-analysis:
+    name: Veracode Dynamic Analysis
+    needs: trigger-prod-pipeline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Scan
+        run: |
+          echo "Trigger Veracode Dynamic analysis"
   
