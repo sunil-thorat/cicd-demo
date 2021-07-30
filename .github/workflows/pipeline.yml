@@ -16,21 +16,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
-      - name: Get next semantic version
-        uses: PaulHatch/semantic-version@v4.0.2
+          fetch-depth: 50
+      - name: Get next semantic tag
         id: semantic-version
+        uses: mathieudutour/github-tag-action@v5.6
         with:
-          tag_prefix: ""
-          major_pattern: "BREAKING CHANGE:"
-          minor_pattern: "feat:"
-          format: "${major}.${minor}.${patch}-${increment}.${GITHUB_SHA:0:7}"
-          short_tags: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          release_branches: '.*'
+          dry_run: true
       - name: Get pre-release version
         run: |
-          VERSION=${{ steps.semantic-version.outputs.version }}
-          echo "VERSION=$VERSION" >> version.txt
-          echo $VERSION
+          increment=$(git rev-list  $(git rev-list --tags --no-walk --max-count=1)..HEAD --count)
+          VERSION=${{ steps.semantic-version.outputs.new_version }}-${increment}.${GITHUB_SHA:0:7}
+          echo "VERSION=$VERSION" > version.txt
+          echo RELEASE_VERSION=${{ steps.semantic-version.outputs.new_version }} >> version.txt
+          echo PREVIOUS_RELEASE_TAG=${{ steps.semantic-version.outputs.previous_tag }} >> version.txt
+          echo VERSION: $VERSION
       - name: Upload version.txt
         uses: actions/upload-artifact@v2
         with:
@@ -38,36 +39,33 @@ jobs:
           path: version.txt
           retention-days: 5
 
-  release:
-    name: Create Release tag
+  create-release-tag:
+    name: Create release tag
     needs: get-version
     runs-on: ubuntu-latest
-    if: success() && github.ref == 'refs/heads/main'
+    # if: success() && github.ref == 'refs/heads/main'
     environment: 
       name: Release
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Bump version and push tag
-        id: tag_version
+      - name: Create and push tag
+        id: release_tag
         uses: mathieudutour/github-tag-action@v5.6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           create_annotated_tag: true
           tag_prefix: ""
-          dry_run: true
-      - name: Show release data
+          release_branches: '.*'
+      - name: Get pre-release version
         run: |
-          echo ${{ steps.tag_version.outputs.new_tag }}
-          echo ${{ steps.tag_version.outputs.changelog }}
-      # - name: Create a GitHub release
-      #   uses: actions/create-release@v1
-      #   id: create_release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: ${{ steps.tag_version.outputs.new_tag }}
-      #     release_name: Release ${{ steps.tag_version.outputs.new_tag }}
-      #     body: ${{ steps.tag_version.outputs.changelog }}
-      
+          echo RELEASE_VERSION=${{ steps.release_tag.outputs.new_tag }} >> version.txt
+          echo RELEASE_VERSION: $RELEASE_VERSION
+      - name: Upload version.txt
+        uses: actions/upload-artifact@v2
+        with:
+          name: version
+          path: version.txt
+          retention-days: 5
+     
     
