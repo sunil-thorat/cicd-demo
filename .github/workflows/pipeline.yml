@@ -42,7 +42,7 @@ jobs:
     name: Create Release tag
     needs: get-version
     runs-on: ubuntu-latest
-    if: github.ref == 'ref/heads/main'
+    if: github.ref == 'main'
     environment: 
       name: Release
     steps:
