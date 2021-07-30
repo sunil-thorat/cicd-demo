@@ -198,7 +198,7 @@ jobs:
 
   create-release:
     name: Create release
-    needs: [deploy-dev, deploy-qa]
+    needs: [deploy-qa]
     runs-on: ubuntu-latest
     if: success() && github.ref == 'refs/heads/main'
     environment: 
