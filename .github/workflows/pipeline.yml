@@ -38,6 +38,8 @@ jobs:
           retention-days: 5
 
   release:
+    name: Publish Release
+    needs: get-version
     runs-on: ubuntu-latest
     environment: Release
     steps:
