@@ -25,7 +25,6 @@ jobs:
           minor_pattern: "feat:"
           format: "${major}.${minor}.${patch}-${increment}.${GITHUB_SHA:0:7}"
           short_tags: false
-          bump_each_commit: false
       - name: Get pre-release version
         run: |
           VERSION=${{ steps.semantic-version.outputs.version }}
