@@ -2,15 +2,15 @@ name: CI Pipeline
 
 on:
   push:
-    branches: 
-      - "**"
-  pull_request: 
+    branches: [ "**" ]
+  pull_request:
     branches: [ main ]
 
 jobs:
   get-version:
     name: "Get Version"
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -28,7 +28,9 @@ jobs:
       - name: Get pre-release version
         run: |
           VERSION=${{ steps.semantic-version.outputs.version }}
-          echo "VERSION=$VERSION" >> version.txt
+          SEMANTIC_VERSION=${{ steps.semantic-version.outputs.version_tag }}
+          echo "VERSION=$VERSION" > version.txt
+          echo "VERSEMANTIC_VERSION=$SEMANTIC_VERSION" >> version.txt
           echo $VERSION
       - name: Upload version.txt
         uses: actions/upload-artifact@v2
