@@ -27,4 +27,4 @@ jobs:
       - name: Show version
         run: |
           echo VERSION: ${{ steps.version.outputs.version }} 
-          echo PREVIOUS_VERSION: ${{ steps.version.outputs.previous_version }} 
+          echo PREVIOUS_VERSION: ${{ steps.version.outputs.previous-version }} 
