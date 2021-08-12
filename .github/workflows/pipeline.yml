@@ -22,7 +22,7 @@ jobs:
         id: version
         uses: codacy/git-version@2.4.0
         with:
-          release-branch: ${{ github.head_ref }}        
+          release-branch: ${{ github.ref }}        
           minor-identifier: "feature:/feat:"
       - name: Show version
         run: |
