@@ -20,10 +20,10 @@ jobs:
           fetch-depth: 0
       - name: Get next semantic version
         id: version
-        uses: codacy/git-version@2.4.0
+        uses: codacy/git-version@2.5.3
         with:
           release-branch: "feat/jira02"        
-          minor-identifier: "feature:/feat:"
+          minor-identifier: "feat:"
       - name: Show version
         run: |
           echo VERSION: ${{ steps.version.outputs.version }} 
