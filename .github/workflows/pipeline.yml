@@ -22,7 +22,7 @@ jobs:
         id: version
         uses: codacy/git-version@2.5.3
         with:
-          release-branch: "feat/jira02"        
+          release-branch: ${GITHUB_REF#refs/heads/}
           minor-identifier: "feat:"
       - name: Show version
         run: |
